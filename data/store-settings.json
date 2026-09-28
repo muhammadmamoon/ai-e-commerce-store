@@ -1,0 +1,18 @@
+{
+  "storeName": "AI Commerce",
+  "supportEmail": "support@aicommerce.com",
+  "currency": "PKR",
+  "timezone": "UTC",
+  "taxRatePercent": 5,
+  "standardShippingFee": 12,
+  "expressShippingFee": 25,
+  "freeShippingThreshold": 150,
+  "enableCod": true,
+  "enableStripe": true,
+  "aiProvider": "OPENAI",
+  "aiModel": "gpt-4o-mini",
+  "seoTitle": "AI Commerce | Intelligent Modern E-Commerce Store",
+  "seoDescription": "Shop flagship electronics, laptops, and accessories powered by real-time inventory and AI recommendations.",
+  "facebookUrl": "https://facebook.com",
+  "instagramUrl": "https://instagram.com"
+}

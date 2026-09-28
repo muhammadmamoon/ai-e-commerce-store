@@ -1,0 +1,23 @@
+{
+  "isRealProduction": true,
+  "daily": {
+    "2026-09-28": {
+      "date": "2026-09-28",
+      "uniqueVisitorIds": [
+        "v_w3lwt5b84_mul2nljs",
+        "v_5pgh1w4p7_mul3qi00"
+      ],
+      "pageViews": 26,
+      "desktopViews": 26,
+      "mobileViews": 0
+    }
+  },
+  "topPages": {
+    "/products/sonicpulse-anc-studio-headphones": 18,
+    "/": 4,
+    "/register": 1,
+    "/checkout": 1,
+    "/products": 1,
+    "/account": 1
+  }
+}
