@@ -1,26 +1,20 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma";
-import { z } from "zod";
-
-const validateCouponSchema = z.object({
-  code: z.string().min(1, "Coupon code is required"),
-  subtotal: z.number().nonnegative(),
-});
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const parsed = validateCouponSchema.safeParse(body);
+    const { code, subtotal } = body;
 
-    if (!parsed.success) {
+    if (!code || typeof code !== "string") {
       return NextResponse.json(
-        { success: false, message: "Invalid coupon payload" },
+        { success: false, message: "Please enter a valid coupon code." },
         { status: 400 },
       );
     }
 
-    const { code, subtotal } = parsed.data;
-    const normalizedCode = code.toUpperCase().trim();
+    const normalizedCode = code.toUpperCase().trim().replace(/\s+/g, "");
+    const cartSubtotal = Number(subtotal || 0);
 
     const coupon = await prisma.coupon.findUnique({
       where: { code: normalizedCode },
@@ -28,27 +22,50 @@ export async function POST(req: Request) {
 
     if (!coupon || !coupon.isActive) {
       return NextResponse.json(
-        { success: false, message: "Invalid or expired coupon code." },
+        {
+          success: false,
+          message: `Coupon "${normalizedCode}" is invalid or currently inactive.`,
+        },
         { status: 404 },
       );
     }
 
+    // Timezone-tolerant date check (covers full start day and full end day)
     const now = new Date();
-    if (now < new Date(coupon.startDate) || now > new Date(coupon.endDate)) {
+    const start = new Date(coupon.startDate);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(coupon.endDate);
+    end.setHours(23, 59, 59, 999);
+
+    if (now < start) {
       return NextResponse.json(
         {
           success: false,
-          message: "This coupon has expired or is not yet active.",
+          message: `This coupon will become active on ${start.toLocaleDateString()}.`,
         },
         { status: 400 },
       );
     }
 
-    if (coupon.minPurchase && subtotal < Number(coupon.minPurchase)) {
+    if (now > end) {
       return NextResponse.json(
         {
           success: false,
-          message: `Minimum order amount of $${Number(coupon.minPurchase).toFixed(2)} required for this coupon.`,
+          message: `This coupon expired on ${end.toLocaleDateString()}.`,
+        },
+        { status: 400 },
+      );
+    }
+
+    const minPurchase = coupon.minPurchase ? Number(coupon.minPurchase) : 0;
+    if (minPurchase > 0 && cartSubtotal < minPurchase) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Minimum order amount of Rs${minPurchase.toFixed(
+            2,
+          )} required for this coupon.`,
         },
         { status: 400 },
       );
@@ -56,24 +73,27 @@ export async function POST(req: Request) {
 
     let discountAmount = 0;
     if (coupon.discountType === "PERCENTAGE") {
-      discountAmount = (subtotal * Number(coupon.amount)) / 100;
+      discountAmount = (cartSubtotal * Number(coupon.amount)) / 100;
     } else {
-      discountAmount = Math.min(Number(coupon.amount), subtotal);
+      discountAmount = Math.min(Number(coupon.amount), cartSubtotal);
     }
+
+    discountAmount = Math.round(discountAmount * 100) / 100;
 
     return NextResponse.json({
       success: true,
+      message: `Coupon ${coupon.code} applied! You saved Rs${discountAmount.toFixed(2)}.`,
       data: {
         code: coupon.code,
         discountType: coupon.discountType,
         amount: Number(coupon.amount),
-        discountTotal: Math.round(discountAmount * 100) / 100,
+        discountAmount,
       },
     });
   } catch (error) {
-    console.error("Coupon validation error:", error);
+    console.error("POST /api/coupons/validate error:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to validate coupon." },
+      { success: false, message: "Failed to validate coupon code." },
       { status: 500 },
     );
   }

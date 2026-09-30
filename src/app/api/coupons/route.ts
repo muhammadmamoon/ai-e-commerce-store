@@ -4,7 +4,9 @@ import { authOptions } from "../../../lib/auth";
 import prisma from "../../../lib/prisma";
 import { z } from "zod";
 
-export const couponSchema = z.object({
+export const dynamic = "force-dynamic";
+
+const couponSchema = z.object({
   code: z.string().min(3, "Coupon code must be at least 3 characters").max(30),
   discountType: z.enum(["PERCENTAGE", "FIXED"]),
   amount: z.coerce.number().positive("Discount amount must be greater than 0"),
@@ -15,19 +17,9 @@ export const couponSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
+// GET /api/coupons -> Accessible by both Admin Panel and Live Storefront Banner
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (
-      !session?.user ||
-      !["SUPER_ADMIN", "ADMIN", "MANAGER"].includes(session.user.role)
-    ) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 403 },
-      );
-    }
-
     const coupons = await prisma.coupon.findMany({
       orderBy: { startDate: "desc" },
     });
@@ -38,10 +30,17 @@ export async function GET() {
       minPurchase: c.minPurchase !== null ? Number(c.minPurchase) : null,
     }));
 
-    return NextResponse.json({
-      success: true,
-      data: formatted,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data: formatted,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      },
+    );
   } catch (error) {
     console.error("GET /api/coupons error:", error);
     return NextResponse.json(

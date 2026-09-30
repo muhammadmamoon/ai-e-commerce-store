@@ -51,6 +51,10 @@ interface ProductFormState {
   basePrice: number;
   isFeatured: boolean;
   isHot: boolean;
+  // NAYE FIELDS YAHAN ADD KIYE:
+  shippingFee: number;
+  isFreeShipping: boolean;
+  // ...
   seoTitle: string;
   seoDesc: string;
   seoKeywords: string;
@@ -77,6 +81,9 @@ const initialProductForm: ProductFormState = {
   basePrice: 99.99,
   isFeatured: false,
   isHot: false,
+  // NAYE FIELDS KI INITIAL STATE:
+  shippingFee: 0,
+  isFreeShipping: false,
   seoTitle: "",
   seoDesc: "",
   seoKeywords: "",
@@ -165,6 +172,9 @@ export default function AdminProductsPage() {
       basePrice: Number(product.basePrice),
       isFeatured: Boolean(product.isFeatured),
       isHot: Boolean(product.isHot),
+      // DATA EDIT HONE PAR STATE MEIN SAVE KAREIN:
+      shippingFee: Number(product.shippingFee || 0),
+      isFreeShipping: Boolean(product.isFreeShipping),
       seoTitle: product.seoTitle || "",
       seoDesc: product.seoDesc || "",
       seoKeywords: product.seoKeywords || "",
@@ -200,6 +210,9 @@ export default function AdminProductsPage() {
         basePrice: Number(product.basePrice),
         isFeatured: false,
         isHot: false,
+        // DUPLICATE MEIN BHI FIELDS SAVE HONGY:
+        shippingFee: Number(product.shippingFee || 0),
+        isFreeShipping: Boolean(product.isFreeShipping),
         seoTitle: product.seoTitle,
         seoDesc: product.seoDesc,
         seoKeywords: product.seoKeywords,
@@ -558,7 +571,7 @@ export default function AdminProductsPage() {
                       </td>
 
                       <td className="py-3.5 px-4 font-semibold text-emerald-400">
-                        ${Number(product.basePrice).toFixed(2)}
+                        Rs{Number(product.basePrice).toFixed(2)}
                       </td>
 
                       <td className="py-3.5 px-4">
@@ -740,7 +753,7 @@ export default function AdminProductsPage() {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
-                    Base Display Price ($) *
+                    Base Display Price (Rs) *
                   </label>
                   <input
                     type="number"
@@ -757,7 +770,49 @@ export default function AdminProductsPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-6 pt-5">
+                {/* NEW: Shipping Fields Added Here */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                      Shipping Fee (Rs)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.shippingFee}
+                      disabled={formData.isFreeShipping}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          shippingFee: parseFloat(e.target.value) || 0,
+                        }))
+                      }
+                      className="w-full px-3.5 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end h-full pb-2">
+                    <label className="inline-flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isFreeShipping}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            isFreeShipping: e.target.checked,
+                            shippingFee: e.target.checked
+                              ? 0
+                              : prev.shippingFee,
+                          }))
+                        }
+                        className="rounded bg-slate-900 border-slate-700 text-blue-600"
+                      />
+                      <span>Free</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6 pt-5 md:col-span-3">
                   <label className="inline-flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
                     <input
                       type="checkbox"
@@ -795,7 +850,7 @@ export default function AdminProductsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2 text-blue-300 font-semibold text-sm">
                     <Sparkles className="w-4 h-4 text-blue-400" />
-                    <span>AI Copywriter & SEO Metadata Generator</span>
+                    <span>AI Copywriter & Metadata Generator</span>
                   </div>
                   <button
                     type="button"
@@ -810,20 +865,6 @@ export default function AdminProductsPage() {
                     )}
                     <span>Generate with AI</span>
                   </button>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">
-                    Enter key product specs/features (comma-separated) to feed
-                    the AI:
-                  </label>
-                  <input
-                    type="text"
-                    value={aiFeaturesInput}
-                    onChange={(e) => setAiFeaturesInput(e.target.value)}
-                    placeholder="e.g., A19 Pro Chip, Titanium frame, 48MP Camera, 5G"
-                    className="w-full px-3 py-1.5 bg-slate-950/90 border border-slate-800 rounded-lg text-xs text-slate-200"
-                  />
                 </div>
               </div>
 
@@ -926,7 +967,7 @@ export default function AdminProductsPage() {
 
                       <div>
                         <label className="block text-[10px] uppercase text-slate-400 mb-1">
-                          Sale Price ($) *
+                          Sale Price (Rs) *
                         </label>
                         <input
                           type="number"

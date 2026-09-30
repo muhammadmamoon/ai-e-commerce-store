@@ -33,7 +33,7 @@ export default async function AdminDashboardPage() {
   const cards = [
     {
       title: "Gross Paid Revenue",
-      value: `$${totalRevenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+      value: `Rs${totalRevenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
       icon: DollarSign,
       color: "text-emerald-400",
       bg: "bg-emerald-500/10",

@@ -309,7 +309,7 @@ export default function AdminAnalyticsPage() {
             <DollarSign className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="text-2xl font-bold text-white mt-2">
-            $
+            Rs
             {summary.totalRevenue.toLocaleString("en-US", {
               minimumFractionDigits: 2,
             })}
@@ -342,7 +342,7 @@ export default function AdminAnalyticsPage() {
             <TrendingUp className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-2xl font-bold text-white mt-2">
-            ${summary.averageOrderValue.toFixed(2)}
+            Rs{summary.averageOrderValue.toFixed(2)}
           </div>
         </div>
       </div>
@@ -352,7 +352,7 @@ export default function AdminAnalyticsPage() {
         {/* Daily Revenue Chart */}
         <div className="lg:col-span-2 p-6 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300">
-            Daily Revenue Trajectory ($)
+            Daily Revenue Trajectory (Rs)
           </h2>
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -497,7 +497,7 @@ export default function AdminAnalyticsPage() {
                     {hp.unitsSold30d} units
                   </td>
                   <td className="py-3.5 px-4 font-semibold text-emerald-400">
-                    ${hp.revenue30d.toFixed(2)}
+                    Rs{hp.revenue30d.toFixed(2)}
                   </td>
                   <td className="py-3.5 px-4">
                     <div className="flex flex-wrap gap-1.5">

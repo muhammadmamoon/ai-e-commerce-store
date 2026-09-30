@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/auth";
 import prisma from "../../../../lib/prisma";
+import { revalidatePath } from "next/cache";
 
 export async function PUT(
   req: Request,
@@ -62,6 +63,9 @@ export async function PUT(
       },
     });
 
+    // Storefront Homepage ka cache foran clear karein
+    revalidatePath("/");
+
     return NextResponse.json({
       success: true,
       message: "Coupon updated successfully.",
@@ -94,6 +98,8 @@ export async function DELETE(
 
     const { id } = await context.params;
     await prisma.coupon.delete({ where: { id } });
+
+    revalidatePath("/");
 
     return NextResponse.json({
       success: true,

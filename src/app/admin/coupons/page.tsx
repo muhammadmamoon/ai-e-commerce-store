@@ -212,12 +212,12 @@ export default function AdminCouponsPage() {
                       <td className="py-3.5 px-4 font-bold text-emerald-400">
                         {coupon.discountType === "PERCENTAGE"
                           ? `${coupon.amount}% OFF`
-                          : `$${coupon.amount.toFixed(2)} OFF`}
+                          : `Rs${coupon.amount.toFixed(2)} OFF`}
                       </td>
 
                       <td className="py-3.5 px-4 text-xs text-slate-300">
                         {coupon.minPurchase
-                          ? `$${coupon.minPurchase.toFixed(2)}`
+                          ? `Rs${coupon.minPurchase.toFixed(2)}`
                           : "No minimum"}
                       </td>
 
@@ -350,7 +350,7 @@ export default function AdminCouponsPage() {
                     className="w-full px-3.5 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-white"
                   >
                     <option value="PERCENTAGE">Percentage (%)</option>
-                    <option value="FIXED">Fixed Dollar Amount ($)</option>
+                    <option value="FIXED">Fixed Amount (Rs)</option>
                   </select>
                 </div>
 
@@ -376,7 +376,7 @@ export default function AdminCouponsPage() {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
-                    Min. Order Subtotal ($)
+                    Min. Order Subtotal (Rs)
                   </label>
                   <input
                     type="number"

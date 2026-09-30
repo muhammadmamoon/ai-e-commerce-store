@@ -12,6 +12,8 @@ export interface CartItem {
   quantity: number;
   maxStock: number;
   image: string;
+  shippingFee: number;
+  isFreeShipping: boolean;
 }
 
 interface CartStore {

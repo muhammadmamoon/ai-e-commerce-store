@@ -43,6 +43,8 @@ export default function ProductDetailClient({ product }: { product: any }) {
       quantity,
       maxStock: stock,
       image: activeImage,
+      shippingFee: product.shippingFee,
+      isFreeShipping: product.isFreeShipping,
     });
   };
 
@@ -102,7 +104,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
 
           <div className="flex items-baseline gap-3">
             <span className="text-3xl font-black text-slate-900">
-              ${price.toFixed(2)}
+              Rs {price.toFixed(2)}
             </span>
             {selectedVariant && (
               <span className="text-xs font-mono text-slate-400">
@@ -146,7 +148,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
                           {v.name}
                         </div>
                         <div className="text-[11px] text-slate-500">
-                          ${Number(v.price).toFixed(2)}
+                          Rs {Number(v.price).toFixed(2)}
                         </div>
                       </div>
                       <span
@@ -210,11 +212,11 @@ export default function ProductDetailClient({ product }: { product: any }) {
               className="flex-1 py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 transition disabled:opacity-40"
             >
               <ShoppingCart className="w-4 h-4" />
-              <span>Add to Cart — ${(price * quantity).toFixed(2)}</span>
+              <span>Add to Cart — Rs {(price * quantity).toFixed(2)}</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 pt-2 text-xs text-slate-500">
+          {/* <div className="grid grid-cols-2 gap-3 pt-2 text-xs text-slate-500">
             <div className="flex items-center gap-2">
               <Truck className="w-4 h-4 text-blue-600" />
               <span>Free delivery over $150</span>
@@ -223,7 +225,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>1-Year Official Warranty</span>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

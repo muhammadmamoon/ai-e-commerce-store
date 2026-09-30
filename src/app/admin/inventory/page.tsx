@@ -121,8 +121,8 @@ export default function AdminInventoryPage() {
       "Returned",
       "Low Stock Threshold",
       "Status",
-      "Unit Price ($)",
-      "Total Retail Value ($)",
+      "Unit Price (Rs)",
+      "Total Retail Value (Rs)",
     ];
 
     const rows = items.map((i) => [
@@ -202,7 +202,7 @@ export default function AdminInventoryPage() {
             <DollarSign className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="text-2xl font-bold text-emerald-400 mt-2">
-            $
+            Rs
             {summary.totalInventoryValue.toLocaleString("en-US", {
               minimumFractionDigits: 2,
             })}

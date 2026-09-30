@@ -121,10 +121,10 @@ STRICT RULES:
         const list = topCategories
           .map(
             (c) =>
-              `• **${c.name}**: **$${c.revenue.toFixed(2)}** revenue across **${c.units} units** sold`,
+              `• **${c.name}**: **Rs${c.revenue.toFixed(2)}** revenue across **${c.units} units** sold`,
           )
           .join("\n");
-        answer = `### Category Revenue Breakdown (Last 30 Days)\nTotal Store Revenue: **$${summaryLast30Days.totalRevenue.toFixed(
+        answer = `### Category Revenue Breakdown (Last 30 Days)\nTotal Store Revenue: **Rs${summaryLast30Days.totalRevenue.toFixed(
           2,
         )}**\n\n${list}\n\n**Suggested Action:** Prioritize inventory depth and homepage banner placement for **${
           topCategories[0].name
@@ -153,16 +153,16 @@ STRICT RULES:
         .slice(0, 3)
         .map(
           (p) =>
-            `• **${p.name}** (Hot Score: **${p.hotScore}/100**) — **${p.unitsSold30d} units sold** ($${p.revenue30d.toFixed(
+            `• **${p.name}** (Hot Score: **${p.hotScore}/100**) — **${p.unitsSold30d} units sold** (Rs${p.revenue30d.toFixed(
               2,
             )}) | Reasons: ${p.reasons.join(", ")}`,
         )
         .join("\n");
 
       answer = `### Executive Store Intelligence Summary (Last 30 Days)
-• **Total Paid/Active Revenue:** $${summaryLast30Days.totalRevenue.toFixed(2)}
+• **Total Paid/Active Revenue:** Rs${summaryLast30Days.totalRevenue.toFixed(2)}
 • **Total Orders Processed:** ${summaryLast30Days.totalOrders} orders (${summaryLast30Days.totalUnitsSold} total units)
-• **Average Order Value (AOV):** $${summaryLast30Days.averageOrderValue.toFixed(2)}
+• **Average Order Value (AOV):** Rs${summaryLast30Days.averageOrderValue.toFixed(2)}
 
 **Fastest-Selling & Highest Hot-Score Products:**
 ${topHot || "• No product sales recorded yet."}

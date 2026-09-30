@@ -42,6 +42,8 @@ export default function ProductCard({ product }: ProductCardProps) {
       quantity: 1,
       maxStock: Number(defaultVariant.stock),
       image: primaryImage,
+      shippingFee: Number(product.shippingFee || 0),
+      isFreeShipping: Boolean(product.isFreeShipping),
     });
   };
 
@@ -107,7 +109,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div>
           <span className="text-xs text-slate-400 block">Price</span>
           <span className="text-base font-extrabold text-slate-900">
-            ${displayPrice.toFixed(2)}
+            Rs {displayPrice.toFixed(2)}
           </span>
         </div>
 

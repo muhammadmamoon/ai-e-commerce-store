@@ -17,6 +17,7 @@ import {
   Tag,
   Check,
   ShoppingBag,
+  LogIn,
 } from "lucide-react";
 
 export default function CheckoutPage() {
@@ -56,20 +57,36 @@ export default function CheckoutPage() {
   const [orderComplete, setOrderComplete] = useState<any | null>(null);
 
   useEffect(() => {
-    if (session?.user) {
+    if (session?.user?.name && !address.fullName) {
       setAddress((prev) => ({
         ...prev,
-        fullName: prev.fullName || session.user.name || "",
+        fullName: session.user.name || "",
       }));
     }
-  }, [session]);
+  }, [session?.user?.name, address.fullName]);
 
+  // =========================================================================
+  // 🔥 DYNAMIC SHIPPING (FLAT FEE PER ITEM - FIXED) 🔥
+  // =========================================================================
   const subtotal = getSubtotal();
+
+  const dynamicStandardShipping = items.reduce((totalFee, item: any) => {
+    if (item.isFreeShipping) {
+      return totalFee;
+    }
+    const fee = item.shippingFee ? Number(item.shippingFee) : 0;
+    return totalFee + fee; // Only add base fee once per product type
+  }, 0);
+
   const discount = appliedCoupon ? appliedCoupon.discountTotal : 0;
   const shippingFee =
-    shippingMethod === "EXPRESS" ? 25.0 : subtotal >= 150 ? 0.0 : 12.0;
-  const estimatedTax = Math.max(0, subtotal - discount) * 0.05;
-  const total = Math.max(0, subtotal - discount + shippingFee + estimatedTax);
+    shippingMethod === "EXPRESS"
+      ? dynamicStandardShipping + 15.0
+      : dynamicStandardShipping;
+
+  // const estimatedTax = Math.max(0, subtotal - discount) * 0.05;
+  const total = Math.max(0, subtotal - discount + shippingFee);
+  // =========================================================================
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
@@ -133,7 +150,29 @@ export default function CheckoutPage() {
     );
   }
 
-  // Confirmation View
+  if (status === "unauthenticated") {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-20 h-20 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto shadow-md">
+          <LogIn className="w-10 h-10 ml-2" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-black text-slate-900">Login Required</h2>
+          <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+            Please sign in to your account to securely complete your purchase
+            and track your order.
+          </p>
+        </div>
+        <button
+          onClick={() => router.push("/login?callbackUrl=/checkout")}
+          className="px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-600/30 transition w-full"
+        >
+          Login / Create Account
+        </button>
+      </div>
+    );
+  }
+
   if (orderComplete) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6">
@@ -152,7 +191,7 @@ export default function CheckoutPage() {
           <div className="flex justify-between">
             <span className="text-slate-500">Total Paid/Due:</span>
             <span className="font-bold text-slate-900">
-              ${Number(orderComplete.total).toFixed(2)}
+              Rs{Number(orderComplete.total).toFixed(2)}
             </span>
           </div>
           <div className="flex justify-between">
@@ -369,12 +408,16 @@ export default function CheckoutPage() {
                         Standard Delivery
                       </h4>
                       <p className="text-xs text-slate-500">
-                        3-5 business days (Free over $150)
+                        Calculated based on items in your cart
                       </p>
                     </div>
                   </div>
-                  <span className="text-sm font-bold text-slate-900">
-                    {subtotal >= 150 ? "FREE" : "$12.00"}
+                  <span
+                    className={`text-sm font-bold ${dynamicStandardShipping === 0 ? "text-emerald-500" : "text-slate-900"}`}
+                  >
+                    {dynamicStandardShipping === 0
+                      ? "FREE"
+                      : `$${dynamicStandardShipping.toFixed(2)}`}
                   </span>
                 </label>
 
@@ -393,12 +436,12 @@ export default function CheckoutPage() {
                         Priority Express
                       </h4>
                       <p className="text-xs text-slate-500">
-                        1-2 business days with priority dispatch
+                        Rush processing & fast dispatch
                       </p>
                     </div>
                   </div>
                   <span className="text-sm font-bold text-slate-900">
-                    $25.00
+                    Rs{(dynamicStandardShipping + 15.0).toFixed(2)}
                   </span>
                 </label>
               </div>
@@ -536,7 +579,7 @@ export default function CheckoutPage() {
                         </div>
                       </div>
                       <span className="font-bold text-slate-900">
-                        ${(i.price * i.quantity).toFixed(2)}
+                        Rs{(i.price * i.quantity).toFixed(2)}
                       </span>
                     </div>
                   ))}
@@ -558,7 +601,7 @@ export default function CheckoutPage() {
                   className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 transition disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>Place Order • ${total.toFixed(2)}</span>
+                  <span>Place Order • Rs{total.toFixed(2)}</span>
                 </button>
               </div>
             </div>
@@ -568,9 +611,28 @@ export default function CheckoutPage() {
         {/* Right Order Summary & Coupon Sidebar */}
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">
               Order Summary
             </h3>
+
+            {/* 🔥 NEW: ITEM LIST IN RIGHT SIDEBAR 🔥 */}
+            <div className="max-h-48 overflow-y-auto space-y-3 pb-4 border-b border-slate-100">
+              {items.map((i) => (
+                <div key={i.variantId} className="flex justify-between text-xs">
+                  <div className="flex-1 pr-2">
+                    <p className="font-bold text-slate-800 line-clamp-1">
+                      {i.productName}
+                    </p>
+                    <p className="text-slate-500">
+                      {i.variantName} × {i.quantity}
+                    </p>
+                  </div>
+                  <span className="font-bold text-slate-900">
+                    Rs{(i.price * i.quantity).toFixed(2)}
+                  </span>
+                </div>
+              ))}
+            </div>
 
             {/* Coupon Application Box */}
             <div className="pt-2">
@@ -603,7 +665,7 @@ export default function CheckoutPage() {
               )}
               {appliedCoupon && (
                 <p className="text-[11px] text-emerald-600 mt-1 font-semibold">
-                  Coupon &quot;{appliedCoupon.code}&quot; applied (-$
+                  Coupon &quot;{appliedCoupon.code}&quot; applied (-Rs
                   {appliedCoupon.discountTotal.toFixed(2)})
                 </p>
               )}
@@ -624,17 +686,19 @@ export default function CheckoutPage() {
                 </div>
               )}
               <div className="flex justify-between">
-                <span>Shipping</span>
-                <span className="font-semibold text-slate-900">
+                <span>Shipping Fee</span>
+                <span
+                  className={`font-semibold ${shippingFee === 0 ? "text-emerald-500" : "text-slate-900"}`}
+                >
                   {shippingFee === 0 ? "FREE" : `$${shippingFee.toFixed(2)}`}
                 </span>
               </div>
-              <div className="flex justify-between">
+              {/* <div className="flex justify-between">
                 <span>Estimated Tax (5%)</span>
                 <span className="font-semibold text-slate-900">
                   ${estimatedTax.toFixed(2)}
                 </span>
-              </div>
+              </div> */}
               <div className="flex justify-between text-base font-black text-slate-900 pt-3 border-t border-slate-100">
                 <span>Total Amount</span>
                 <span>${total.toFixed(2)}</span>

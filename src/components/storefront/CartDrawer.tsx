@@ -24,7 +24,17 @@ export default function CartDrawer() {
   if (!mounted || !isOpen) return null;
 
   const subtotal = getSubtotal();
-  const estimatedShipping = subtotal > 150 || subtotal === 0 ? 0 : 12.0;
+
+  // 🔥 DYNAMIC SHIPPING LOGIC ADDED HERE 🔥
+  // 🔥 DYNAMIC SHIPPING LOGIC (FLAT FEE PER ITEM) 🔥
+  const estimatedShipping = items.reduce((totalFee, item: any) => {
+    if (item.isFreeShipping) {
+      return totalFee;
+    }
+    const fee = item.shippingFee ? Number(item.shippingFee) : 0;
+    return totalFee + fee; // Ab yeh quantity se multiply nahi hoga
+  }, 0);
+
   const total = subtotal + estimatedShipping;
 
   return (
@@ -97,7 +107,7 @@ export default function CartDrawer() {
                       </span>
                     </p>
                     <p className="text-sm font-bold text-blue-600 mt-1">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      Rs {(item.price * item.quantity).toFixed(2)}
                     </p>
 
                     <div className="flex items-center justify-between mt-2.5">
@@ -145,7 +155,7 @@ export default function CartDrawer() {
                 <div className="flex justify-between text-slate-600">
                   <span>Subtotal</span>
                   <span className="font-semibold text-slate-900">
-                    ${subtotal.toFixed(2)}
+                    Rs {subtotal.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-slate-600 text-xs">
@@ -162,7 +172,7 @@ export default function CartDrawer() {
                 </div>
                 <div className="flex justify-between text-base font-extrabold text-slate-900 pt-2 border-t border-slate-200">
                   <span>Estimated Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>Rs {total.toFixed(2)}</span>
                 </div>
               </div>
 

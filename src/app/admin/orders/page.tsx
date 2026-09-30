@@ -267,7 +267,7 @@ export default function AdminOrdersPage() {
                     </td>
 
                     <td className="py-3.5 px-4 font-semibold text-white">
-                      ${Number(order.total).toFixed(2)}
+                      Rs{Number(order.total).toFixed(2)}
                     </td>
 
                     <td className="py-3.5 px-4">
@@ -419,7 +419,7 @@ export default function AdminOrdersPage() {
                       </div>
                     </div>
                     <div className="font-bold text-white text-sm shrink-0">
-                      ${(Number(it.price) * it.quantity).toFixed(2)}
+                      Rs{(Number(it.price) * it.quantity).toFixed(2)}
                     </div>
                   </div>
                 ))}
@@ -498,22 +498,24 @@ export default function AdminOrdersPage() {
                   </div>
                   <div className="flex justify-between text-slate-400">
                     <span>Discount:</span>
-                    <span>-${Number(selectedOrder.discount).toFixed(2)}</span>
+                    <span>-Rs{Number(selectedOrder.discount).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-slate-400">
                     <span>Shipping Fee:</span>
-                    <span>${Number(selectedOrder.shippingFee).toFixed(2)}</span>
+                    <span>
+                      Rs{Number(selectedOrder.shippingFee).toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between text-slate-400">
                     <span>Tax:</span>
-                    <span>${Number(selectedOrder.tax).toFixed(2)}</span>
+                    <span>Rs{Number(selectedOrder.tax).toFixed(2)}</span>
                   </div>
                 </div>
 
                 <div className="flex justify-between text-white font-bold text-base pt-3 border-t border-slate-800">
                   <span>Total:</span>
                   <span className="text-emerald-400">
-                    ${Number(selectedOrder.total).toFixed(2)}
+                    Rs{Number(selectedOrder.total).toFixed(2)}
                   </span>
                 </div>
               </div>

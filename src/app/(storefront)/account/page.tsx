@@ -107,6 +107,8 @@ export default function CustomerAccountPage() {
       quantity: 1,
       maxStock: item.defaultVariant.stock,
       image: item.image,
+      shippingFee: Number(item.shippingFee || 0),
+      isFreeShipping: Boolean(item.isFreeShipping),
     });
 
     await axios.delete(`/api/wishlist?productId=${item.productId}`);
@@ -280,7 +282,7 @@ export default function CustomerAccountPage() {
                           Total Amount
                         </span>
                         <span className="font-extrabold text-blue-600">
-                          ${order.total.toFixed(2)}
+                          Rs{order.total.toFixed(2)}
                         </span>
                       </div>
                       <div>
@@ -381,7 +383,7 @@ export default function CustomerAccountPage() {
                         </div>
 
                         <span className="text-sm font-bold text-slate-900">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          Rs{(item.price * item.quantity).toFixed(2)}
                         </span>
                       </div>
                     ))}
@@ -454,7 +456,7 @@ export default function CustomerAccountPage() {
                         </h3>
                       </Link>
                       <p className="text-base font-extrabold text-slate-900 mt-2">
-                        ${item.basePrice.toFixed(2)}
+                        Rs{item.basePrice.toFixed(2)}
                       </p>
                     </div>
                   </div>

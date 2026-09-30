@@ -123,7 +123,7 @@ export default function AdminCustomersPage() {
 
         <div className="p-5 rounded-xl bg-slate-950/80 border border-amber-500/20">
           <div className="flex items-center justify-between text-xs text-amber-400">
-            <span>High-Value VIPs ($1,500+)</span>
+            <span>High-Value VIPs (Rs1,500+)</span>
             <Crown className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-2xl font-bold text-white mt-2">
@@ -147,7 +147,7 @@ export default function AdminCustomersPage() {
             <DollarSign className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="text-2xl font-bold text-emerald-400 mt-2">
-            $
+            Rs
             {summary.totalCustomerLifetimeValue.toLocaleString("en-US", {
               minimumFractionDigits: 2,
             })}
@@ -270,7 +270,7 @@ export default function AdminCustomersPage() {
                     </td>
 
                     <td className="py-3.5 px-4 font-bold text-emerald-400">
-                      ${c.totalSpent.toFixed(2)}
+                      Rs{c.totalSpent.toFixed(2)}
                     </td>
 
                     <td className="py-3.5 px-4 text-xs text-slate-400">
@@ -382,7 +382,7 @@ export default function AdminCustomersPage() {
                           {ord.status}
                         </span>
                         <span className="font-bold text-emerald-400">
-                          ${ord.total.toFixed(2)}
+                          Rs{ord.total.toFixed(2)}
                         </span>
                       </div>
                     </div>

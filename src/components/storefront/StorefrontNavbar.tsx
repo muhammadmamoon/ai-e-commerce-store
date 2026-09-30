@@ -48,7 +48,7 @@ export default function StorefrontNavbar({
       <div className="bg-slate-950 text-slate-200 text-xs py-2 px-4 text-center font-medium flex items-center justify-center gap-2">
         <Sparkles className="w-3.5 h-3.5 text-blue-400" />
         <span>
-          AI-Powered Storefront • Free Express Shipping on Orders Over $150
+          AI-Powered Storefront • Free Express Shipping on Orders Over Rs:3000
         </span>
       </div>
 

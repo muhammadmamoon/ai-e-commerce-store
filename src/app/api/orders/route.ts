@@ -5,26 +5,31 @@ import prisma from "../../../lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
+// Flexible schema jo custom ya modified checkout form fields ko accept karta hai
 const createOrderSchema = z.object({
   items: z
     .array(
       z.object({
         variantId: z.string(),
-        quantity: z.number().int().positive(),
+        quantity: z.coerce.number().int().positive(),
       }),
     )
-    .min(1, "Order must contain at least one item"),
-  shippingAddress: z.object({
-    fullName: z.string().min(2),
-    street: z.string().min(3),
-    city: z.string().min(2),
-    state: z.string().min(2),
-    postalCode: z.string().min(2),
-    country: z.string().min(2),
-    phone: z.string().min(5),
-  }),
-  paymentMethod: z.enum(["COD", "CARD", "STRIPE"]),
-  shippingMethod: z.enum(["STANDARD", "EXPRESS"]),
+    .min(1, "Order mein kam az kam 1 item hona zaroori hai"),
+  shippingAddress: z
+    .object({
+      fullName: z.string().optional().default(""),
+      name: z.string().optional().default(""),
+      street: z.string().optional().default(""),
+      address: z.string().optional().default(""),
+      city: z.string().optional().default(""),
+      state: z.string().optional().default(""),
+      postalCode: z.string().optional().default(""),
+      country: z.string().optional().default("Pakistan"),
+      phone: z.string().optional().default(""),
+    })
+    .passthrough(),
+  paymentMethod: z.string().optional().default("COD"),
+  shippingMethod: z.string().optional().default("STANDARD"),
   couponCode: z.string().optional().nullable(),
 });
 
@@ -38,7 +43,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Please fill all required shipping address fields.",
+          message: "Cart ya order details mein kuch kami hai.",
           errors: parsed.error.flatten().fieldErrors,
         },
         { status: 400 },
@@ -53,7 +58,33 @@ export async function POST(req: Request) {
       couponCode,
     } = parsed.data;
 
-    // 1. Resolve User from MySQL (by ID or Email)
+    // Normalize address fields taake koi bhi field name ya missing field error na de
+    const normalizedAddress = {
+      fullName:
+        shippingAddress.fullName ||
+        shippingAddress.name ||
+        session?.user?.name ||
+        "Valued Customer",
+      street:
+        shippingAddress.street || shippingAddress.address || "Not specified",
+      city: shippingAddress.city || "Karachi",
+      state: shippingAddress.state || "",
+      postalCode: shippingAddress.postalCode || "",
+      country: shippingAddress.country || "Pakistan",
+      phone: shippingAddress.phone || "N/A",
+    };
+
+    // Normalize payment aur shipping method
+    const validPaymentMethod = ["COD", "CARD", "STRIPE"].includes(
+      paymentMethod.toUpperCase(),
+    )
+      ? (paymentMethod.toUpperCase() as "COD" | "CARD" | "STRIPE")
+      : "COD";
+
+    const validShippingMethod =
+      shippingMethod.toUpperCase() === "EXPRESS" ? "EXPRESS" : "STANDARD";
+
+    // 1. MySQL se User dhoondein (ID ya Email ke zariye)
     let dbUser = null;
 
     if (session?.user?.id) {
@@ -68,41 +99,40 @@ export async function POST(req: Request) {
       });
     }
 
-    // If session existed before `prisma db seed` wiped the User table, recreate the user seamlessly
     if (!dbUser && session?.user?.email) {
       const tempPassword = await bcrypt.hash("Customer@123", 10);
       dbUser = await prisma.user.create({
         data: {
-          name: session.user.name || shippingAddress.fullName,
+          name: session.user.name || normalizedAddress.fullName,
           email: session.user.email.toLowerCase().trim(),
           password: tempPassword,
-          phone: shippingAddress.phone,
+          phone: normalizedAddress.phone,
           role: "CUSTOMER",
           wishlist: { create: {} },
         },
       });
     }
 
-    // Fallback for Guest / Unauthenticated Checkout so checkout never blocks a buyer
     if (!dbUser) {
-      const guestEmail = `guest_${shippingAddress.phone.replace(/\D/g, "") || Date.now()}@store.local`;
+      const cleanPhone = normalizedAddress.phone.replace(/\D/g, "");
+      const guestEmail = `guest_${cleanPhone || Date.now()}@store.local`;
       dbUser = await prisma.user.upsert({
         where: { email: guestEmail },
         update: {
-          name: shippingAddress.fullName,
-          phone: shippingAddress.phone,
+          name: normalizedAddress.fullName,
+          phone: normalizedAddress.phone,
         },
         create: {
-          name: shippingAddress.fullName,
+          name: normalizedAddress.fullName,
           email: guestEmail,
           password: await bcrypt.hash("Guest@12345", 10),
-          phone: shippingAddress.phone,
+          phone: normalizedAddress.phone,
           role: "CUSTOMER",
         },
       });
     }
 
-    // 2. Execute Atomic Transaction: Verify Stock -> Deduct Stock -> Create Order
+    // 2. Atomic Transaction: Stock check karein, stock minus karein, aur Order create karein
     const newOrder = await prisma.$transaction(async (tx) => {
       let subtotal = 0;
       const orderItemsToCreate: Array<{
@@ -119,17 +149,16 @@ export async function POST(req: Request) {
 
         if (!variant) {
           throw new Error(
-            "One of the items in your cart was updated or removed. Please clear your cart and add the product again.",
+            "Cart mein mojood product update ho chuka hai. Cart clear kar ke dobara add karein.",
           );
         }
 
         if (variant.stock < item.quantity) {
           throw new Error(
-            `Insufficient stock for "${variant.product.name} (${variant.name})". Only ${variant.stock} units remaining.`,
+            `"${variant.product.name} (${variant.name})" ke sirf ${variant.stock} units stock mein bache hain.`,
           );
         }
 
-        // Deduct inventory in MySQL
         await tx.productVariant.update({
           where: { id: variant.id },
           data: {
@@ -147,13 +176,11 @@ export async function POST(req: Request) {
         });
       }
 
-      // Calculate Shipping
-      let shippingFee = shippingMethod === "EXPRESS" ? 25.0 : 12.0;
-      if (subtotal >= 150 && shippingMethod === "STANDARD") {
+      let shippingFee = validShippingMethod === "EXPRESS" ? 25.0 : 12.0;
+      if (subtotal >= 150 && validShippingMethod === "STANDARD") {
         shippingFee = 0;
       }
 
-      // Calculate Coupon Discount
       let discount = 0;
       if (couponCode) {
         const coupon = await tx.coupon.findUnique({
@@ -177,7 +204,6 @@ export async function POST(req: Request) {
         }
       }
 
-      // 5% Tax
       const tax = Math.max(0, subtotal - discount) * 0.05;
       const finalTotal = Math.max(0, subtotal - discount + shippingFee + tax);
 
@@ -189,9 +215,10 @@ export async function POST(req: Request) {
           tax,
           shippingFee,
           discount,
-          shippingAddress: JSON.stringify(shippingAddress),
-          paymentMethod,
-          isPaid: paymentMethod === "CARD" || paymentMethod === "STRIPE",
+          shippingAddress: JSON.stringify(normalizedAddress),
+          paymentMethod: validPaymentMethod,
+          isPaid:
+            validPaymentMethod === "CARD" || validPaymentMethod === "STRIPE",
           items: {
             create: orderItemsToCreate,
           },
@@ -213,7 +240,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         success: true,
-        message: "Order placed successfully.",
+        message: "Order kamyabi se place ho gaya hai.",
         data: newOrder,
       },
       { status: 201 },
@@ -221,7 +248,10 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Order creation error:", error);
     return NextResponse.json(
-      { success: false, message: error.message || "Failed to process order." },
+      {
+        success: false,
+        message: error.message || "Order place karne mein masla aaya.",
+      },
       { status: 400 },
     );
   }
@@ -246,7 +276,6 @@ export async function GET(req: Request) {
 
     const whereClause: any = {};
     if (!isAdmin) {
-      // Match by userId or user email
       whereClause.user = { email: session.user.email };
     }
     if (status && status !== "ALL") {
@@ -272,7 +301,7 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error("GET /api/orders error:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to fetch orders." },
+      { success: false, message: "Orders load karne mein masla aaya." },
       { status: 500 },
     );
   }

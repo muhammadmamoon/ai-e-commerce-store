@@ -1,0 +1,13 @@
+{
+  "unverifiedEmails": [],
+  "verifiedEmails": [
+    "admin@store.com",
+    "alex@example.com",
+    "sarah@example.com",
+    "david@example.com",
+    "sap346044@gmail.com",
+    "muhammadmamoon771@gmail.com"
+  ],
+  "verificationTokens": [],
+  "resetTokens": []
+}

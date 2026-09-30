@@ -7,17 +7,54 @@
         "v_w3lwt5b84_mul2nljs",
         "v_5pgh1w4p7_mul3qi00"
       ],
-      "pageViews": 26,
-      "desktopViews": 26,
+      "pageViews": 71,
+      "desktopViews": 71,
+      "mobileViews": 0
+    },
+    "2026-09-29": {
+      "date": "2026-09-29",
+      "uniqueVisitorIds": [
+        "v_w3lwt5b84_mul2nljs",
+        "v_yash410gw_mumpajxu",
+        "v_x5c14ugdg_mumpdibp",
+        "v_bfz6c6ewp_mumpf6td",
+        "v_1ia5ewbv1_mumpkuos",
+        "v_p4x5nx9j5_mumpsrw5"
+      ],
+      "pageViews": 282,
+      "desktopViews": 282,
+      "mobileViews": 0
+    },
+    "2026-09-30": {
+      "date": "2026-09-30",
+      "uniqueVisitorIds": [
+        "v_p4x5nx9j5_mumpsrw5",
+        "v_ethgo8uue_munrhf0s",
+        "v_ga0eag22y_munricjk"
+      ],
+      "pageViews": 62,
+      "desktopViews": 62,
       "mobileViews": 0
     }
   },
   "topPages": {
-    "/products/sonicpulse-anc-studio-headphones": 18,
-    "/": 4,
-    "/register": 1,
-    "/checkout": 1,
-    "/products": 1,
-    "/account": 1
+    "/products/sonicpulse-anc-studio-headphones": 23,
+    "/": 140,
+    "/register": 2,
+    "/checkout": 135,
+    "/products": 53,
+    "/account": 8,
+    "/forgot-password": 2,
+    "/products/iphone-17-pro-titanium": 2,
+    "/products/wi-fi-router": 3,
+    "/products/nomad-pro-waterproof-tech-backpack": 3,
+    "/products/men-jeans-pent": 5,
+    "/order-tracking": 2,
+    "/policies/warranty": 1,
+    "/policies/secure-payment": 1,
+    "/contact": 1,
+    "/products/air-conditioning-wallpapers": 4,
+    "/products/test": 6,
+    "/products/park": 24
   }
 }

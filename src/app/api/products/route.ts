@@ -21,10 +21,12 @@ const imageInputSchema = z.object({
   isPrimary: z.boolean().default(false),
 });
 
-export const productCreateSchema = z.object({
+const productCreateSchema = z.object({
   name: z.string().min(2, "Product name must be at least 2 characters"),
   slug: z.string().optional(),
   categoryId: z.string().uuid("Valid category is required"),
+  shippingFee: z.coerce.number().nonnegative().optional().default(0),
+  isFreeShipping: z.boolean().optional().default(false),
   shortDesc: z.string().optional().nullable(),
   description: z.string().min(10, "Description must be at least 10 characters"),
   basePrice: z.coerce.number().positive("Base price must be greater than 0"),
@@ -48,6 +50,10 @@ export async function GET(req: Request) {
     const categoryId = searchParams.get("categoryId") || undefined;
     const featuredOnly = searchParams.get("featured") === "true";
     const hotOnly = searchParams.get("hot") === "true";
+
+    const minPrice = searchParams.get("minPrice");
+    const maxPrice = searchParams.get("maxPrice");
+
     const sort = searchParams.get("sort") || "newest";
     const page = Math.max(1, Number(searchParams.get("page") || 1));
     const limit = Math.min(
@@ -70,6 +76,12 @@ export async function GET(req: Request) {
     if (categoryId) whereClause.categoryId = categoryId;
     if (featuredOnly) whereClause.isFeatured = true;
     if (hotOnly) whereClause.isHot = true;
+
+    if (minPrice || maxPrice) {
+      whereClause.basePrice = {};
+      if (minPrice) whereClause.basePrice.gte = Number(minPrice);
+      if (maxPrice) whereClause.basePrice.lte = Number(maxPrice);
+    }
 
     let orderBy: any = { createdAt: "desc" };
     if (sort === "price_asc") orderBy = { basePrice: "asc" };
@@ -141,7 +153,6 @@ export async function POST(req: Request) {
     const data = parsed.data;
     const finalSlug = slugify(data.slug?.trim() ? data.slug : data.name);
 
-    // Verify unique slug
     const existingSlug = await prisma.product.findUnique({
       where: { slug: finalSlug },
     });
@@ -155,7 +166,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verify unique SKUs in request
     const skus = data.variants.map((v) => v.sku.trim());
     const existingSku = await prisma.productVariant.findFirst({
       where: { sku: { in: skus } },
@@ -171,7 +181,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Ensure exactly one primary image
     const hasPrimary = data.images.some((img) => img.isPrimary);
     const normalizedImages = data.images.map((img, idx) => ({
       url: img.url,
@@ -183,6 +192,8 @@ export async function POST(req: Request) {
         name: data.name.trim(),
         slug: finalSlug,
         categoryId: data.categoryId,
+        shippingFee: data.shippingFee || 0,
+        isFreeShipping: data.isFreeShipping || false,
         shortDesc: data.shortDesc || null,
         description: data.description,
         basePrice: data.basePrice,
@@ -213,6 +224,68 @@ export async function POST(req: Request) {
         category: true,
       },
     });
+
+    // =====================================================================
+    // 🔥 NEW PRODUCT EMAIL ALERT LOGIC (MySQL/Prisma Version)
+    // =====================================================================
+    try {
+      // Fetch all subscribers directly from MySQL
+      const subscribers = await prisma.newsletterSubscriber.findMany({
+        select: { email: true },
+      });
+
+      if (
+        subscribers.length > 0 &&
+        process.env.SMTP_EMAIL &&
+        !process.env.SMTP_EMAIL.includes("your-email")
+      ) {
+        const nodemailer = await import("nodemailer");
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: process.env.SMTP_EMAIL,
+            pass: process.env.SMTP_PASSWORD,
+          },
+        });
+
+        const baseUrl =
+          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const productUrl = `${baseUrl}/products/${createdProduct.slug}`;
+
+        // Loop laga kar sub ko email bhej dein
+        for (const sub of subscribers) {
+          await transporter
+            .sendMail({
+              from: `"AI Commerce" <${process.env.SMTP_EMAIL}>`,
+              to: sub.email,
+              subject: `🔥 New Arrival: ${createdProduct.name} is now available!`,
+              html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; text-align: center;">
+                <h2 style="color: #0f172a; margin-bottom: 10px;">Just Dropped: ${createdProduct.name}</h2>
+                <p style="color: #475569; font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
+                  We just added an exciting new product to our catalog. As a valued subscriber, you're the first to know! Grab it before it sells out.
+                </p>
+                <a href="${productUrl}" style="background-color: #2563eb; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
+                  View Product in Store
+                </a>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 20px;">
+                  You received this email because you subscribed to our newsletter.
+                </p>
+              </div>
+            `,
+            })
+            .catch((err) =>
+              console.error(`Failed to send alert to ${sub.email}:`, err),
+            );
+        }
+        console.log(
+          `Successfully sent new product alerts to ${subscribers.length} subscribers.`,
+        );
+      }
+    } catch (e) {
+      console.log("Newsletter alert error:", e);
+    }
+    // =====================================================================
 
     return NextResponse.json(
       { success: true, data: createdProduct },

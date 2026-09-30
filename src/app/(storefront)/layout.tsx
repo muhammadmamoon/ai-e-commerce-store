@@ -1,6 +1,7 @@
 import prisma from "../../lib/prisma";
 import StorefrontNavbar from "../../components/storefront/StorefrontNavbar";
 import CartDrawer from "../../components/storefront/CartDrawer";
+import NewsletterForm from "../../components/storefront/NewsletterForm";
 import Link from "next/link";
 import React from "react";
 
@@ -43,20 +44,23 @@ export default async function StorefrontLayout({
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <Link href="/products" className="hover:text-white">
+                <Link href="/products" className="hover:text-white transition">
                   All Products
                 </Link>
               </li>
               <li>
                 <Link
                   href="/products?featured=true"
-                  className="hover:text-white"
+                  className="hover:text-white transition"
                 >
                   Featured Releases
                 </Link>
               </li>
               <li>
-                <Link href="/products?hot=true" className="hover:text-white">
+                <Link
+                  href="/products?hot=true"
+                  className="hover:text-white transition"
+                >
                   Hot Trending Items
                 </Link>
               </li>
@@ -68,9 +72,28 @@ export default async function StorefrontLayout({
               Customer Care
             </h4>
             <ul className="space-y-2 text-xs">
-              <li>Order Tracking</li>
-              <li>Official Warranty Policy</li>
-              <li>Secure Payment Guarantee</li>
+              <li>
+                {/* Yahan Order Tracking ko /account par point kar diya gaya hai */}
+                <Link href="/account" className="hover:text-white transition">
+                  Order Tracking
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/policies/warranty"
+                  className="hover:text-white transition"
+                >
+                  Official Warranty Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/policies/secure-payment"
+                  className="hover:text-white transition"
+                >
+                  Secure Payment Guarantee
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -81,16 +104,7 @@ export default async function StorefrontLayout({
             <p className="text-xs text-slate-400 mb-3">
               Subscribe for exclusive drops and AI-curated deals.
             </p>
-            <div className="flex gap-2">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white"
-              />
-              <button className="px-3.5 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-500">
-                Join
-              </button>
-            </div>
+            <NewsletterForm />
           </div>
         </div>
       </footer>

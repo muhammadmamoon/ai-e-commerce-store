@@ -42,7 +42,7 @@ async function createsCircularReference(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } },
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -55,7 +55,9 @@ export async function PUT(
       );
     }
 
-    const categoryId = params.id;
+    const resolvedParams = await context.params;
+    const categoryId = resolvedParams.id;
+
     const body = await req.json();
     const parsed = updateCategorySchema.safeParse(body);
 
@@ -147,7 +149,7 @@ export async function PUT(
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } },
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -160,7 +162,8 @@ export async function DELETE(
       );
     }
 
-    const categoryId = params.id;
+    const resolvedParams = await context.params;
+    const categoryId = resolvedParams.id;
 
     const category = await prisma.category.findUnique({
       where: { id: categoryId },
