@@ -166,7 +166,7 @@ export default function CartDrawer() {
                         FREE
                       </span>
                     ) : (
-                      `$${estimatedShipping.toFixed(2)}`
+                      `Rs ${estimatedShipping.toFixed(2)}`
                     )}
                   </span>
                 </div>
