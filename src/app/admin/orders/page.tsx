@@ -39,9 +39,6 @@ interface ParsedAddress {
   raw?: string;
 }
 
-/**
- * Safely parses the JSON shippingAddress string into clean structured fields
- */
 function parseShippingAddress(shippingAddress: any): ParsedAddress {
   if (!shippingAddress) return {};
   if (typeof shippingAddress === "object") return shippingAddress;
@@ -144,9 +141,22 @@ export default function AdminOrdersPage() {
     ? parseShippingAddress(selectedOrder.shippingAddress)
     : {};
 
+  // 🔥 STANDARD SLIP MATH CALCULATIONS 🔥
+  const itemsSubtotal =
+    selectedOrder?.items?.reduce(
+      (acc: number, it: any) => acc + Number(it.price) * it.quantity,
+      0,
+    ) || 0;
+
+  const displayShipping = Number(selectedOrder?.shippingFee) || 0;
+  const displayDiscount = Number(selectedOrder?.discount) || 0;
+
+  // Force Total to match exactly what is visible on the slip (ignoring hidden database taxes)
+  const displayTotal = itemsSubtotal + displayShipping - displayDiscount;
+
   return (
     <div className="space-y-6">
-      {/* Global Print Stylesheet so only the Invoice Modal prints cleanly */}
+      {/* Global Print Stylesheet */}
       <style jsx global>{`
         @media print {
           body * {
@@ -157,14 +167,15 @@ export default function AdminOrdersPage() {
             visibility: visible;
           }
           #printable-order-invoice {
-            position: fixed;
+            position: absolute;
             left: 0;
             top: 0;
             width: 100%;
             background: #090d16 !important;
             color: #ffffff !important;
             box-shadow: none !important;
-            border: 1px solid #1e293b !important;
+            border: none !important;
+            padding: 20px !important;
           }
           .no-print {
             display: none !important;
@@ -248,73 +259,86 @@ export default function AdminOrdersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/70 text-sm">
-                {filteredOrders.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="hover:bg-slate-900/40 transition"
-                  >
-                    <td className="py-3.5 px-4 font-mono text-xs text-blue-400">
-                      #{order.id.slice(0, 8)}
-                    </td>
+                {filteredOrders.map((order) => {
+                  // Table Row total recalculation to match the slip perfectly
+                  const rowSubtotal =
+                    order.items?.reduce(
+                      (acc: number, it: any) =>
+                        acc + Number(it.price) * it.quantity,
+                      0,
+                    ) || 0;
+                  const rowShipping = Number(order.shippingFee) || 0;
+                  const rowDiscount = Number(order.discount) || 0;
+                  const rowTotal = rowSubtotal + rowShipping - rowDiscount;
 
-                    <td className="py-3.5 px-4">
-                      <div className="font-semibold text-white">
-                        {order.user?.name}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {order.user?.email}
-                      </div>
-                    </td>
+                  return (
+                    <tr
+                      key={order.id}
+                      className="hover:bg-slate-900/40 transition"
+                    >
+                      <td className="py-3.5 px-4 font-mono text-xs text-blue-400">
+                        #{order.id.slice(0, 8)}
+                      </td>
 
-                    <td className="py-3.5 px-4 font-semibold text-white">
-                      Rs{Number(order.total).toFixed(2)}
-                    </td>
+                      <td className="py-3.5 px-4">
+                        <div className="font-semibold text-white">
+                          {order.user?.name}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {order.user?.email}
+                        </div>
+                      </td>
 
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-1.5">
+                      <td className="py-3.5 px-4 font-semibold text-white">
+                        Rs{rowTotal.toFixed(2)}
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                              order.isPaid
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                            }`}
+                          >
+                            {order.isPaid ? "PAID" : "UNPAID"}
+                          </span>
+                          <span className="text-xs text-slate-500 font-mono">
+                            {order.paymentMethod}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4">
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                            order.isPaid
-                              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                              : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                          }`}
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getStatusBadge(
+                            order.status,
+                          )}`}
                         >
-                          {order.isPaid ? "PAID" : "UNPAID"}
+                          {order.status}
                         </span>
-                        <span className="text-xs text-slate-500 font-mono">
-                          {order.paymentMethod}
-                        </span>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getStatusBadge(
-                          order.status,
-                        )}`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
+                      <td className="py-3.5 px-4 text-xs text-slate-400">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
 
-                    <td className="py-3.5 px-4 text-xs text-slate-400">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </td>
-
-                    <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => {
-                          setSelectedOrder(order);
-                          setStatusToast(null);
-                        }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Manage</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setStatusToast(null);
+                          }}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Manage</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -348,7 +372,7 @@ export default function AdminOrdersPage() {
                 </p>
               </div>
 
-              {/* Action Buttons (Hidden when printing) */}
+              {/* Action Buttons */}
               <div className="flex items-center gap-2 no-print print:hidden">
                 <button
                   onClick={() => window.print()}
@@ -366,7 +390,7 @@ export default function AdminOrdersPage() {
               </div>
             </div>
 
-            {/* Status Pipeline Controller — HIDDEN IN PRINT VIEW */}
+            {/* Status Pipeline Controller */}
             <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2.5 no-print print:hidden">
               <div className="flex items-center justify-between">
                 <label className="block text-xs font-semibold uppercase text-slate-400">
@@ -428,7 +452,7 @@ export default function AdminOrdersPage() {
 
             {/* Customer & Shipping + Financials Breakdown */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              {/* Formatted Customer & Shipping Card (No JSON overflow) */}
+              {/* Customer & Shipping Card */}
               <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2.5 break-words overflow-hidden">
                 <h5 className="font-bold text-white uppercase text-[11px] tracking-wider border-b border-slate-800 pb-2">
                   Customer & Shipping
@@ -483,12 +507,13 @@ export default function AdminOrdersPage() {
                 )}
               </div>
 
-              {/* Financials Card */}
+              {/* 🔥 Standard Financials Slip Card 🔥 */}
               <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between space-y-2">
                 <div className="space-y-2">
                   <h5 className="font-bold text-white uppercase text-[11px] tracking-wider border-b border-slate-800 pb-2">
                     Financials
                   </h5>
+
                   <div className="flex justify-between text-slate-400">
                     <span>Payment Method:</span>
                     <span className="font-mono text-slate-200">
@@ -496,26 +521,35 @@ export default function AdminOrdersPage() {
                       {selectedOrder.isPaid ? "PAID" : "UNPAID"})
                     </span>
                   </div>
+
                   <div className="flex justify-between text-slate-400">
-                    <span>Discount:</span>
-                    <span>-Rs{Number(selectedOrder.discount).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Shipping Fee:</span>
-                    <span>
-                      Rs{Number(selectedOrder.shippingFee).toFixed(2)}
+                    <span>Product Amount:</span>
+                    <span className="text-slate-200">
+                      Rs{itemsSubtotal.toFixed(2)}
                     </span>
                   </div>
+
                   <div className="flex justify-between text-slate-400">
-                    <span>Tax:</span>
-                    <span>Rs{Number(selectedOrder.tax).toFixed(2)}</span>
+                    <span>Shipping Fee:</span>
+                    <span className="text-slate-200">
+                      {displayShipping === 0
+                        ? "FREE"
+                        : `Rs${displayShipping.toFixed(2)}`}
+                    </span>
                   </div>
+
+                  {displayDiscount > 0 && (
+                    <div className="flex justify-between text-emerald-400">
+                      <span>Discount:</span>
+                      <span>-Rs{displayDiscount.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-between text-white font-bold text-base pt-3 border-t border-slate-800">
                   <span>Total:</span>
                   <span className="text-emerald-400">
-                    Rs{Number(selectedOrder.total).toFixed(2)}
+                    Rs{displayTotal.toFixed(2)}
                   </span>
                 </div>
               </div>
