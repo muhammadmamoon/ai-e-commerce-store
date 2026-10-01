@@ -417,7 +417,7 @@ export default function CheckoutPage() {
                   >
                     {dynamicStandardShipping === 0
                       ? "FREE"
-                      : `$${dynamicStandardShipping.toFixed(2)}`}
+                      : `Rs ${dynamicStandardShipping.toFixed(2)}`}
                   </span>
                 </label>
 
@@ -690,7 +690,7 @@ export default function CheckoutPage() {
                 <span
                   className={`font-semibold ${shippingFee === 0 ? "text-emerald-500" : "text-slate-900"}`}
                 >
-                  {shippingFee === 0 ? "FREE" : `$${shippingFee.toFixed(2)}`}
+                  {shippingFee === 0 ? "FREE" : `Rs ${shippingFee.toFixed(2)}`}
                 </span>
               </div>
               {/* <div className="flex justify-between">
