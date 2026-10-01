@@ -5,7 +5,6 @@ import prisma from "../../../lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
-// Flexible schema jo custom ya modified checkout form fields ko accept karta hai
 const createOrderSchema = z.object({
   items: z
     .array(
@@ -30,6 +29,7 @@ const createOrderSchema = z.object({
     .passthrough(),
   paymentMethod: z.string().optional().default("COD"),
   shippingMethod: z.string().optional().default("STANDARD"),
+  shippingFee: z.coerce.number().optional().default(0), // 🔥 Direct Checkout Shipping Fee accept karega
   couponCode: z.string().optional().nullable(),
 });
 
@@ -55,10 +55,10 @@ export async function POST(req: Request) {
       shippingAddress,
       paymentMethod,
       shippingMethod,
+      shippingFee: clientShippingFee,
       couponCode,
     } = parsed.data;
 
-    // Normalize address fields taake koi bhi field name ya missing field error na de
     const normalizedAddress = {
       fullName:
         shippingAddress.fullName ||
@@ -74,19 +74,13 @@ export async function POST(req: Request) {
       phone: shippingAddress.phone || "N/A",
     };
 
-    // Normalize payment aur shipping method
     const validPaymentMethod = ["COD", "CARD", "STRIPE"].includes(
       paymentMethod.toUpperCase(),
     )
       ? (paymentMethod.toUpperCase() as "COD" | "CARD" | "STRIPE")
       : "COD";
 
-    const validShippingMethod =
-      shippingMethod.toUpperCase() === "EXPRESS" ? "EXPRESS" : "STANDARD";
-
-    // 1. MySQL se User dhoondein (ID ya Email ke zariye)
     let dbUser = null;
-
     if (session?.user?.id) {
       dbUser = await prisma.user.findUnique({
         where: { id: session.user.id },
@@ -132,9 +126,10 @@ export async function POST(req: Request) {
       });
     }
 
-    // 2. Atomic Transaction: Stock check karein, stock minus karein, aur Order create karein
     const newOrder = await prisma.$transaction(async (tx) => {
       let subtotal = 0;
+      let calculatedShipping = 0;
+
       const orderItemsToCreate: Array<{
         variantId: string;
         quantity: number;
@@ -169,6 +164,10 @@ export async function POST(req: Request) {
         const itemTotal = Number(variant.price) * item.quantity;
         subtotal += itemTotal;
 
+        if (!variant.product.isFreeShipping) {
+          calculatedShipping += Number(variant.product.shippingFee || 0);
+        }
+
         orderItemsToCreate.push({
           variantId: variant.id,
           quantity: item.quantity,
@@ -176,10 +175,9 @@ export async function POST(req: Request) {
         });
       }
 
-      let shippingFee = validShippingMethod === "EXPRESS" ? 25.0 : 12.0;
-      if (subtotal >= 150 && validShippingMethod === "STANDARD") {
-        shippingFee = 0;
-      }
+      // Agar checkout page se exact shipping fee aayi ho to woh use karo, warna database wali
+      let finalShippingFee =
+        clientShippingFee > 0 ? clientShippingFee : calculatedShipping;
 
       let discount = 0;
       if (couponCode) {
@@ -204,17 +202,17 @@ export async function POST(req: Request) {
         }
       }
 
-      const tax = Math.max(0, subtotal - discount) * 0.05;
-      const finalTotal = Math.max(0, subtotal - discount + shippingFee + tax);
+      const tax = 0;
+      const finalTotal = Math.max(0, subtotal - discount + finalShippingFee);
 
       const createdOrder = await tx.order.create({
         data: {
           userId: dbUser.id,
           status: "PENDING",
           total: finalTotal,
-          tax,
-          shippingFee,
-          discount,
+          tax: tax,
+          shippingFee: finalShippingFee,
+          discount: discount,
           shippingAddress: JSON.stringify(normalizedAddress),
           paymentMethod: validPaymentMethod,
           isPaid:
