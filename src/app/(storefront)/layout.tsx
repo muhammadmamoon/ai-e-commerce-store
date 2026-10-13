@@ -4,6 +4,7 @@ import CartDrawer from "../../components/storefront/CartDrawer";
 import NewsletterForm from "../../components/storefront/NewsletterForm";
 import Link from "next/link";
 import React from "react";
+import { Zap } from "lucide-react";
 
 export default async function StorefrontLayout({
   children,
@@ -26,11 +27,14 @@ export default async function StorefrontLayout({
       <footer className="bg-slate-950 text-slate-400 border-t border-slate-800 mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
           <div className="space-y-3">
-            <div className="flex items-center gap-2 font-black text-lg text-white">
-              <span className="w-7 h-7 rounded bg-blue-600 text-white flex items-center justify-center text-xs">
-                AI
+            {/* Updated SwiftShop Logo for Dark Footer */}
+            <div className="flex items-center gap-2.5 font-black text-xl tracking-tight">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md shadow-blue-500/20 text-white flex items-center justify-center">
+                <Zap className="w-3.5 h-3.5 fill-current" />
+              </div>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">
+                Swift<span className="font-semibold text-blue-500">Shop</span>
               </span>
-              <span>COMMERCE</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
               Next-generation intelligent e-commerce platform powered by
@@ -73,7 +77,7 @@ export default async function StorefrontLayout({
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
-                {/* Yahan Order Tracking ko /account par point kar diya gaya hai */}
+                {/* Order Tracking pointing to /account */}
                 <Link href="/account" className="hover:text-white transition">
                   Order Tracking
                 </Link>
