@@ -1,6 +1,8 @@
 import Link from "next/link";
 import prisma from "../../lib/prisma";
 import ProductCard from "../../components/storefront/ProductCard";
+import ProductCarousel from "./ProductCarousel/page";
+import HeroSlider from "./HeroSlider/page";
 import {
   Sparkles,
   Flame,
@@ -97,79 +99,7 @@ export default async function StorefrontHomePage() {
   return (
     <div className="space-y-16 pb-16">
       {/* Hero Banner (Updated with Fail-proof Lucide Animated Icons) */}
-      <section className="relative bg-slate-950 text-white overflow-hidden min-h-[80vh] flex items-center">
-        {/* Background Subtle Glows */}
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative z-10 w-full flex flex-col lg:flex-row items-center justify-between gap-12">
-          {/* Left Side: Text Content */}
-          <div className="max-w-2xl space-y-8 lg:w-1/2 z-20">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-blue-300 text-xs font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(59,130,246,0.3)]">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-              <span>Next-Gen AI Curated Store</span>
-            </div>
-
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tighter leading-[1.1]">
-              Flagship Tech. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
-                Real-Time Intelligence.
-              </span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl">
-              Experience instant variant stock verification, dynamic Hot Product
-              rankings, and express delivery across our entire catalog.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link
-                href="/products"
-                className="px-8 py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm inline-flex items-center gap-2 shadow-[0_0_30px_-5px_rgba(37,99,235,0.6)] hover:shadow-[0_0_40px_-5px_rgba(37,99,235,0.8)] hover:-translate-y-1 transition-all duration-300"
-              >
-                <span>Shop All Products</span>
-                <ArrowRight className="w-4 h-4 animate-bounce-x" />
-              </Link>
-              {/* FIXED: Browse Categories -> Explore Catalog -> Points to /products */}
-              <Link
-                href="/products"
-                className="px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-sm text-white font-bold text-sm hover:-translate-y-1 transition-all duration-300"
-              >
-                Explore Catalog
-              </Link>
-            </div>
-          </div>
-
-          {/* Right Side: Attractive Floating Built-in Icons (Fail-proof) */}
-          <div className="hidden lg:flex lg:w-1/2 relative justify-center items-center h-[500px]">
-            {/* Center Glowing Orbs */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-500/30 blur-[80px] rounded-full animate-pulse" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/4 -translate-y-1/4 w-64 h-64 bg-indigo-500/30 blur-[80px] rounded-full" />
-
-            {/* Main Glowing Rocket (Bouncing smoothly) */}
-            <div className="relative z-10 animate-[bounce_4s_ease-in-out_infinite] bg-gradient-to-br from-blue-400 to-indigo-600 p-8 rounded-full shadow-[0_0_80px_rgba(59,130,246,0.6)]">
-              <Rocket
-                className="w-32 h-32 text-white drop-shadow-2xl"
-                strokeWidth={1.5}
-              />
-            </div>
-
-            {/* Secondary Floating Elements */}
-            <div className="absolute top-10 right-16 animate-[bounce_5s_ease-in-out_infinite_0.5s] bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/20 shadow-xl">
-              <Star
-                className="w-12 h-12 text-amber-400 fill-amber-400/50 drop-shadow-[0_0_20px_rgba(251,191,36,0.5)]"
-                strokeWidth={1.5}
-              />
-            </div>
-
-            <div className="absolute bottom-16 left-10 animate-[bounce_6s_ease-in-out_infinite_1s] bg-white/10 backdrop-blur-md p-5 rounded-full border border-white/20 shadow-xl">
-              <Gift
-                className="w-14 h-14 text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.5)]"
-                strokeWidth={1.5}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSlider latestProducts={featuredProducts.slice(0, 4)} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
         {/* Trust Badges */}
@@ -343,10 +273,13 @@ export default async function StorefrontHomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
+          </div> */}
+          <div className="mt-6">
+            <ProductCarousel products={featuredProducts} />
           </div>
         </section>
 
