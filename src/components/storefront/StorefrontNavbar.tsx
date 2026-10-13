@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   Sparkles,
+  Zap, // Added Zap icon for the "Swift" theme
 } from "lucide-react";
 
 export default function StorefrontNavbar({
@@ -48,7 +49,7 @@ export default function StorefrontNavbar({
       <div className="bg-slate-950 text-slate-200 text-xs py-2 px-4 text-center font-medium flex items-center justify-center gap-2">
         <Sparkles className="w-3.5 h-3.5 text-blue-400" />
         <span>
-          AI-Powered Storefront • Free Express Shipping on Orders Over Rs:3000
+          Welcome to SwiftShop • Free Express Shipping on Orders Over Rs:3000
         </span>
       </div>
 
@@ -57,12 +58,16 @@ export default function StorefrontNavbar({
         <div className="flex items-center gap-6">
           <Link
             href="/"
-            className="flex items-center gap-2 font-black text-xl text-slate-900 tracking-tight"
+            className="flex items-center gap-2.5 font-black text-xl tracking-tight group"
           >
-            <span className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm">
-              AI
+            {/* Attractive Gradient Logo Icon */}
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md shadow-blue-500/20 text-white flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+              <Zap className="w-4 h-4 fill-current" />
+            </div>
+            {/* Beautiful Gradient Text */}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
+              Swift<span className="font-semibold text-blue-600">Shop</span>
             </span>
-            <span>COMMERCE</span>
           </Link>
 
           {/* Desktop Category Links */}
