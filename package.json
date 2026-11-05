@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-  "dev": "next dev --webpack",
-  "build": "rm -rf .next && prisma generate && npx prisma db push && next build --webpack",
-  "start": "next start",
-  "lint": "next lint",
-  "postinstall": "prisma generate"
-},
+    "dev": "next dev --webpack",
+    "build": "rm -rf .next && prisma generate && npx prisma db push && next build --webpack",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate"
+  },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
@@ -20,7 +20,7 @@
     "framer-motion": "^13.4.5",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.47.0",
-    "next": "16.3.5",
+    "next": "16.4.1",
     "next-auth": "^4.24.15",
     "nodemailer": "^10.0.12",
     "openai": "^7.21.0",
