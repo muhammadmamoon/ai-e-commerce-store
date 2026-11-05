@@ -1,7 +1,7 @@
 import Link from "next/link";
 import prisma from "../../lib/prisma";
 import ProductCard from "../../components/storefront/ProductCard";
-import ProductCarousel from "./ProductCarousel/page";
+import ProductCarousel from "./ProductCarousel/ProductCarousel";
 import HeroSlider from "./HeroSlider/HeroSlider";
 import {
   Sparkles,
